@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-eyebrow">Vehicle Service &amp; Fuel Station Management</div>
+        <h1>Every branch, one system.</h1>
+        <p class="lede">Book a service, sell fuel, track jobs, and keep stock in check - all from one
+            dashboard shared across every branch of Auto Care Fuel &amp; Service.</p>
+        <div class="hero-actions">
+            <a th:href="@{/register}" class="btn btn-primary">Register as a customer</a>
+            <a th:href="@{/register-branch}" class="btn btn-outline-light">Register a branch</a>
+        </div>
+        <a th:href="@{/login}" class="hero-login-link">Already have an account? Log in &rarr;</a>
+    </div>
+</section>
+
+<div class="role-cards">
+    <div class="role-card">
+        <span class="role-card-tag">Customers</span>
+        <h3>Book a service</h3>
+        <p>Register your vehicles, book a service at any branch, and track each job from pending to completed.</p>
+        <a th:href="@{/register}" class="btn btn-secondary btn-sm">Create an account</a>
+    </div>
+    <div class="role-card">
+        <span class="role-card-tag">Branch owners</span>
+        <h3>Register a branch</h3>
+        <p>Submit your branch for approval, then add cashiers, mechanics, and an inventory manager once it's live.</p>
+        <a th:href="@{/register-branch}" class="btn btn-secondary btn-sm">Register your branch</a>
+    </div>
+    <div class="role-card">
+        <span class="role-card-tag">Staff</span>
+        <h3>Already on the team?</h3>
+        <p>Cashiers, mechanics, inventory managers, branch managers, and the main admin all log in from the same place.</p>
+        <a th:href="@{/login}" class="btn btn-secondary btn-sm">Log in</a>
+    </div>
+</div>
+
+<div class="container text-center">
+    <p class="muted">Auto Care Fuel &amp; Service Pvt Ltd</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="navbar" class="navbar">
+    <div class="navbar-brand">
+        <a th:href="@{/}">Auto Care Fuel &amp; Service</a>
+    </div>
+
+    <ul class="navbar-links" th:if="${currentUserId != null}">
+        <li th:if="${isCustomer}"><a th:href="@{/customer/vehicles}">My Vehicles</a></li>
+        <li th:if="${isCustomer}"><a th:href="@{/customer/booking/new}">Book a Service</a></li>
+        <li th:if="${isCustomer}"><a th:href="@{/customer/bookings}">My Bookings</a></li>
+
+        <li th:if="${isCashier}"><a th:href="@{/cashier/sales}">Fuel Sales</a></li>
+
+        <li th:if="${isMechanic}"><a th:href="@{/mechanic/jobs}">My Jobs</a></li>
+
+        <li th:if="${isInventoryManager}"><a th:href="@{/inventory/bookings}">Bookings Queue</a></li>
+        <li th:if="${isInventoryManager}"><a th:href="@{/inventory/stock}">Stock</a></li>
+
+        <li th:if="${isBranchManager}"><a th:href="@{/branch-manager/staff}">Staff</a></li>
+        <li th:if="${isBranchManager}"><a th:href="@{/branch-manager/feedback}">Feedback</a></li>
+
+        <li th:if="${isMainAdmin}"><a th:href="@{/admin/branches}">Branch Approvals</a></li>
+    </ul>
+
+    <div class="navbar-user" th:if="${currentUserId != null}">
+        <span class="user-name" th:text="${currentUserName}">Name</span>
+        <a th:href="@{/logout}" class="btn-logout">Log out</a>
+    </div>
+    <div class="navbar-user" th:if="${currentUserId == null}">
+        <a th:href="@{/login}">Log in</a>
+        <a th:href="@{/register}">Register</a>
+    </div>
+</nav>
+</body>
+</html>
