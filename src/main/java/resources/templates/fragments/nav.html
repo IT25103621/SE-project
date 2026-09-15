@@ -18,6 +18,7 @@
         <li th:if="${isInventoryManager}"><a th:href="@{/inventory/bookings}">Bookings Queue</a></li>
         <li th:if="${isInventoryManager}"><a th:href="@{/inventory/stock}">Stock</a></li>
 
+        <li th:if="${isBranchManager}"><a th:href="@{/branch-manager/branch}">Branch Details</a></li>
         <li th:if="${isBranchManager}"><a th:href="@{/branch-manager/staff}">Staff</a></li>
         <li th:if="${isBranchManager}"><a th:href="@{/branch-manager/feedback}">Feedback</a></li>
 

@@ -75,7 +75,7 @@ public class BranchManagerController {
     }
 
     @GetMapping("/feedback")
-    public String feedbackPage(HttpSession session, Model model) {
+    public String feedbackPage(com.autocare.vehicleservice.controller.HttpSession session, Model model) {
         Long branchId = (Long) session.getAttribute("branchId");
         model.addAttribute("feedbackList", feedbackService.listByBranch(branchId));
         return "branch-manager/feedback";
