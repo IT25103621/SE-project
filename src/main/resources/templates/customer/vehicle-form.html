@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${editing} ? 'Edit Vehicle - Auto Care Fuel &amp; Service' : 'Add Vehicle - Auto Care Fuel &amp; Service'">Vehicle</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container-narrow">
+    <div class="card">
+        <h1 style="font-size:1.4rem;" th:text="${editing} ? 'Edit Vehicle' : 'Add Vehicle'">Vehicle</h1>
+
+        <form th:action="@{${formAction}}" th:object="${vehicleForm}" method="post">
+            <div class="form-group">
+                <label for="plateNumber">Plate number</label>
+                <input type="text" id="plateNumber" th:field="*{plateNumber}" required autofocus>
+                <div class="field-error" th:if="${#fields.hasErrors('plateNumber')}" th:errors="*{plateNumber}"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="make">Make</label>
+                    <input type="text" id="make" th:field="*{make}" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('make')}" th:errors="*{make}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="model">Model</label>
+                    <input type="text" id="model" th:field="*{model}" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('model')}" th:errors="*{model}"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input type="number" id="year" th:field="*{year}" required>
+                <div class="field-error" th:if="${#fields.hasErrors('year')}" th:errors="*{year}"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing} ? 'Save Changes' : 'Add Vehicle'">Save</button>
+                <a th:href="@{/customer/vehicles}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

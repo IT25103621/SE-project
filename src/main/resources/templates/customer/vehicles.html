@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Vehicles - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>My Vehicles</h1>
+            <p>Register a vehicle to start booking services.</p>
+        </div>
+        <a th:href="@{/customer/vehicles/new}" class="btn btn-primary">Add Vehicle</a>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(vehicles)}">
+        <div class="empty-state">
+            <p>You haven't added a vehicle yet.</p>
+            <a th:href="@{/customer/vehicles/new}" class="btn btn-primary">Add your first vehicle</a>
+        </div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(vehicles)}">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Plate</th>
+                    <th>Make &amp; Model</th>
+                    <th>Year</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${vehicles}">
+                    <td class="mono" th:text="${v.plateNumber}"></td>
+                    <td th:text="${v.make} + ' ' + ${v.model}"></td>
+                    <td class="mono" th:text="${v.year}"></td>
+                    <td class="text-right">
+                        <div class="actions-row" style="justify-content:flex-end;">
+                            <a th:href="@{/customer/vehicles/{id}/history(id=${v.id})}" class="btn btn-secondary btn-sm">History</a>
+                            <a th:href="@{/customer/vehicles/{id}/edit(id=${v.id})}" class="btn btn-secondary btn-sm">Edit</a>
+                            <form th:action="@{/customer/vehicles/{id}/delete(id=${v.id})}" method="post">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

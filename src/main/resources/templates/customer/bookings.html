@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Bookings - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>My Bookings</h1>
+            <p>Track every service booking across all branches.</p>
+        </div>
+        <a th:href="@{/customer/booking/new}" class="btn btn-primary">Book a Service</a>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(bookings)}">
+        <div class="empty-state">
+            <p>You haven't booked a service yet.</p>
+            <a th:href="@{/customer/booking/new}" class="btn btn-primary">Book your first service</a>
+        </div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(bookings)}">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Service</th>
+                    <th>Branch</th>
+                    <th>Status</th>
+                    <th>Booked</th>
+                    <th class="text-right">Feedback</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${bookings}">
+                    <td class="mono" th:text="${b.vehicle.plateNumber}"></td>
+                    <td th:text="${b.service.name}"></td>
+                    <td th:text="${b.branch.name}"></td>
+                    <td><span class="badge" th:classappend="${'badge-' + #strings.toLowerCase(b.status.name())}" th:text="${b.status}"></span></td>
+                    <td class="mono" th:text="${#temporals.format(b.createdAt, 'dd MMM yyyy')}"></td>
+                    <td class="text-right">
+                        <a th:if="${b.status.name() == 'COMPLETED' and !bookingIdsWithFeedback.contains(b.id)}"
+                           th:href="@{/customer/bookings/{id}/feedback(id=${b.id})}" class="btn btn-secondary btn-sm">Leave Feedback</a>
+                        <span th:if="${b.status.name() == 'COMPLETED' and bookingIdsWithFeedback.contains(b.id)}"
+                              class="muted" style="font-size:0.85rem;">Submitted</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

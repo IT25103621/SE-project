@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Service History - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div class="page-header">
+        <div>
+            <h1>Service History</h1>
+            <p class="mono" th:text="${vehicle.plateNumber} + ' &middot; ' + ${vehicle.make} + ' ' + ${vehicle.model}"></p>
+        </div>
+        <a th:href="@{/customer/vehicles}" class="btn btn-secondary">Back to Vehicles</a>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(bookings)}">
+        <div class="empty-state">
+            <p>No service history yet for this vehicle.</p>
+            <a th:href="@{/customer/booking/new}" class="btn btn-primary">Book a service</a>
+        </div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(bookings)}">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Branch</th>
+                    <th>Status</th>
+                    <th>Booked</th>
+                    <th>Completed</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${bookings}">
+                    <td th:text="${b.service.name}"></td>
+                    <td th:text="${b.branch.name}"></td>
+                    <td><span class="badge" th:classappend="${'badge-' + #strings.toLowerCase(b.status.name())}" th:text="${b.status}"></span></td>
+                    <td class="mono" th:text="${#temporals.format(b.createdAt, 'dd MMM yyyy')}"></td>
+                    <td class="mono" th:text="${b.completedAt != null ? #temporals.format(b.completedAt, 'dd MMM yyyy') : '-'}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

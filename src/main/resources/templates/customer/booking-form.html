@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Book a Service - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container-narrow">
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="card" th:if="${#lists.isEmpty(vehicles)}">
+        <div class="empty-state">
+            <p>You need to register a vehicle before booking a service.</p>
+            <a th:href="@{/customer/vehicles/new}" class="btn btn-primary">Add a vehicle</a>
+        </div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(vehicles)}">
+        <h1 style="font-size:1.4rem;">Book a Service</h1>
+
+        <form th:action="@{/customer/booking}" method="post">
+            <div class="form-group">
+                <label for="vehicleId">Vehicle</label>
+                <select id="vehicleId" name="vehicleId" required>
+                    <option th:each="v : ${vehicles}" th:value="${v.id}"
+                            th:text="${v.plateNumber} + ' - ' + ${v.make} + ' ' + ${v.model}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="branchId">Branch</label>
+                <select id="branchId" name="branchId" required>
+                    <option th:each="b : ${branches}" th:value="${b.id}"
+                            th:text="${b.name} + ', ' + ${b.city}"></option>
+                </select>
+                <div class="field-hint" th:if="${#lists.isEmpty(branches)}">No branches are approved yet - please check back later.</div>
+            </div>
+            <div class="form-group">
+                <label for="serviceId">Service</label>
+                <select id="serviceId" name="serviceId" required>
+                    <option th:each="s : ${services}" th:value="${s.id}"
+                            th:text="${s.name} + ' (' + ${s.price} + ')'"></option>
+                </select>
+                <div class="field-hint">If a service turns out to be unavailable at your chosen branch due to low stock, you'll see a message here on submit.</div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-block">Submit Booking</button>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>
