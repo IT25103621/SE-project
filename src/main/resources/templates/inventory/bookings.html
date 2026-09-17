@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bookings Queue - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Bookings Queue</h1>
+            <p>Accept a pending booking by assigning it to a mechanic at your branch.</p>
+        </div>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(bookings)}">
+        <div class="empty-state"><p>No pending bookings right now.</p></div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(bookings)}">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Service</th>
+                    <th>Customer</th>
+                    <th>Booked</th>
+                    <th class="text-right">Assign</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${bookings}">
+                    <td class="mono" th:text="${b.vehicle.plateNumber}"></td>
+                    <td th:text="${b.service.name}"></td>
+                    <td th:text="${b.customer.name}"></td>
+                    <td class="mono" th:text="${#temporals.format(b.createdAt, 'dd MMM yyyy')}"></td>
+                    <td class="text-right">
+                        <form th:action="@{/inventory/bookings/{id}/assign(id=${b.id})}" method="post"
+                              class="inline-form" style="justify-content:flex-end;">
+                            <select name="mechanicId" required th:disabled="${#lists.isEmpty(mechanics)}">
+                                <option th:each="m : ${mechanics}" th:value="${m.id}" th:text="${m.name}"></option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm" th:disabled="${#lists.isEmpty(mechanics)}">Assign</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="field-hint" th:if="${#lists.isEmpty(mechanics)}" style="margin-top:1rem;">
+            No mechanics at your branch yet - ask your Branch Manager to add one.
+        </p>
+    </div>
+</main>
+</body>
+</html>
