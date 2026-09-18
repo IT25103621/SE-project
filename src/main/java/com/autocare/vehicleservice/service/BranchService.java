@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -59,11 +60,16 @@ public class BranchService {
     public List<Branch> listPendingBranches() {
         return branchRepository.findByStatus(BranchStatus.PENDING);
     }
+    public List<Branch> listApprovedBranches() {
+        return branchRepository.findByStatus(BranchStatus.APPROVED);
+    }
 
 
     public List<Branch> listAll() {
         return branchRepository.findAll();
     }
+
+    
 
 
 }

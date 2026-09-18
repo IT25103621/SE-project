@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Staff - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div class="page-header">
+        <div>
+            <h1>Edit Staff Member</h1>
+            <p th:if="${branch != null}" th:text="${branch.name} + ', ' + ${branch.city}"></p>
+        </div>
+        <a th:href="@{/branch-manager/staff}" class="btn btn-secondary">&#8592; Back to Staff</a>
+    </div>
+
+    <div class="card">
+        <form th:action="@{/branch-manager/staff/{id}/edit(id=${staffId})}"
+              th:object="${staffForm}" method="post">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full name</label>
+                    <input type="text" id="name" th:field="*{name}" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" th:field="*{role}" required>
+                        <option value="CASHIER">Cashier</option>
+                        <option value="MECHANIC">Mechanic</option>
+                        <option value="INVENTORY_SERVICE_MANAGER">Inventory &amp; Service Manager</option>
+                    </select>
+                    <div class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone number</label>
+                    <input type="tel" id="phone" th:field="*{phone}" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">New password <span style="font-weight:400;color:var(--text-muted);">(leave blank to keep current)</span></label>
+                <input type="password" id="password" th:field="*{password}" autocomplete="new-password">
+                <div class="field-hint">At least 6 characters. Only fill this in if you want to change the password.</div>
+                <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a th:href="@{/branch-manager/staff}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

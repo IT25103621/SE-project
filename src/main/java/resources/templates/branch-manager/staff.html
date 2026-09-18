@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Staff - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div th:replace="~{fragments/nav :: navbar}"></div>
+
+    <main class="container">
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <div class="page-header">
+            <div>
+                <h1>Staff</h1>
+                <p th:if="${branch != null}" th:text="${branch.name} + ', ' + ${branch.city}"></p>
+            </div>
+        </div>
+
+        <div class="callout" th:if="${branch != null and branch.status.name() == 'PENDING'}"
+            style="margin-bottom:1.5rem;">
+            Your branch is still pending approval from the Main Admin. You can look around, but adding staff opens up
+            once it's approved.
+        </div>
+        <div class="alert alert-error" th:if="${branch != null and branch.status.name() == 'REJECTED'}"
+            style="margin-bottom:1.5rem;">
+            This branch registration was rejected. Please contact the Main Admin for details.
+        </div>
+
+        <div class="card" th:if="${branch != null and branch.status.name() == 'APPROVED'}">
+            <h2>Add Staff</h2>
+            <form th:action="@{/branch-manager/staff}" th:object="${staffForm}" method="post" autocomplete="off">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full name</label>
+                        <input type="text" id="name" th:field="*{name}" required>
+                        <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" th:field="*{role}" required>
+                            <option value="CASHIER">Cashier</option>
+                            <option value="MECHANIC">Mechanic</option>
+                            <option value="INVENTORY_SERVICE_MANAGER">Inventory &amp; Service Manager</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" th:field="*{email}" required autocomplete="off">
+                        <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone number</label>
+                        <input type="tel" id="phone" th:field="*{phone}" required>
+                        <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Temporary password</label>
+                    <input type="password" id="password" th:field="*{password}" required autocomplete="new-password">
+                    <div class="field-hint">At least 6 characters. Share this with the staff member directly.</div>
+                    <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Staff Member</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="section" style="margin-top:2rem;">
+            <h2>Current Staff</h2>
+            <div class="card" th:if="${#lists.isEmpty(staffList)}">
+                <div class="empty-state">
+                    <p>No staff added yet.</p>
+                </div>
+            </div>
+            <div class="card" th:unless="${#lists.isEmpty(staffList)}">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th th:if="${branch != null and branch.status.name() == 'APPROVED'}">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s : ${staffList}">
+                                <td th:text="${s.name}"></td>
+                                <td th:text="${s.role}"></td>
+                                <td th:text="${s.email}"></td>
+                                <td class="mono" th:text="${s.phone}"></td>
+                                <td th:if="${branch != null and branch.status.name() == 'APPROVED'}">
+                                    <a th:href="@{/branch-manager/staff/{id}/edit(id=${s.id})}"
+                                        class="btn btn-secondary" style="margin-right:0.4rem;">Edit</a>
+                                    <form th:action="@{/branch-manager/staff/{id}/delete(id=${s.id})}" method="post"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Remove ' + /*[[${s.name}]]*/ 'this staff member' + '? This cannot be undone.');">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
