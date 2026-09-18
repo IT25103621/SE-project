@@ -44,6 +44,9 @@ public class StockItem {
     @Column(name = "low_stock_threshold", nullable = false, precision = 10, scale = 2)
     private BigDecimal lowStockThreshold;
 
+    @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal unitPrice = BigDecimal.ZERO;
+
     public StockItem() {
     }
 
@@ -103,7 +106,14 @@ public class StockItem {
         this.lowStockThreshold = lowStockThreshold;
     }
 
-    // true when quantity has fallen below
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
     public boolean isLowStock() {
         return quantity != null && lowStockThreshold != null
                 && quantity.compareTo(lowStockThreshold) < 0;
