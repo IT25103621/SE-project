@@ -1,6 +1,7 @@
 package com.autocare.vehicleservice.controller;
 
 import com.autocare.vehicleservice.entity.Branch;
+import com.autocare.vehicleservice.entity.User;
 import com.autocare.vehicleservice.form.StaffForm;
 import com.autocare.vehicleservice.service.BranchService;
 import com.autocare.vehicleservice.service.FeedbackService;
@@ -25,11 +26,15 @@ public class BranchManagerController {
     private final BranchService branchService;
     private final FeedbackService feedbackService;
 
-    public BranchManagerController(UserService userService, BranchService branchService, FeedbackService feedbackService) {
+    public BranchManagerController(UserService userService, BranchService branchService,
+            FeedbackService feedbackService) {
         this.userService = userService;
         this.branchService = branchService;
         this.feedbackService = feedbackService;
     }
+
+    // Staff list + Add
+
     @GetMapping("/staff")
     public String staffPage(HttpSession session, Model model) {
         Long branchId = (Long) session.getAttribute("branchId");
@@ -38,13 +43,21 @@ public class BranchManagerController {
         model.addAttribute("staffForm", new StaffForm());
         return "branch-manager/staff";
     }
+
+    // Create/Add Staff method
+
     @PostMapping("/staff")
     public String addStaff(@Valid @ModelAttribute("staffForm") StaffForm staffForm,
-                           BindingResult bindingResult,
-                           HttpSession session,
-                           Model model,
-                           RedirectAttributes redirectAttributes) {
+            BindingResult bindingResult,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         Long branchId = (Long) session.getAttribute("branchId");
+
+        // Password is required when creating a new staff member (optional only on edit)
+        if (staffForm.getPassword() == null || staffForm.getPassword().isBlank()) {
+            bindingResult.rejectValue("password", "required", "Please choose a password");
+        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("staffList", userService.findStaffByBranch(branchId));
@@ -63,111 +76,84 @@ public class BranchManagerController {
         return "redirect:/branch-manager/staff";
     }
 
-    //Edit method
-    @GetMapping("/staff/edit/{id}")
-    public String editStaffPage(@PathVariable("id") Long userId,
-                                HttpSession session,
-                                Model model) {
+    // Staff Edit Method to update
 
+    @GetMapping("/staff/{id}/edit")
+    public String editStaffForm(@PathVariable Long id,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         Long branchId = (Long) session.getAttribute("branchId");
+        User staff = userService.findById(id).orElse(null);
 
-        Branch branch = branchService.findById(branchId)
-                .orElseThrow(() -> new IllegalArgumentException("Branch not found."));
-
-        var user = userService.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Staff member not found."));
-
-        // Make sure the staff member belongs to this branch
-        if (user.getBranch() == null || !user.getBranch().getId().equals(branchId)) {
-            throw new IllegalArgumentException("Staff member does not belong to this branch.");
+        if (staff == null || staff.getBranch() == null || !staff.getBranch().getId().equals(branchId)) {
+            redirectAttributes.addFlashAttribute("error", "Staff member not found.");
+            return "redirect:/branch-manager/staff";
         }
 
+        // Already fill the form with existing information but leave password blank
         StaffForm form = new StaffForm();
-        form.setName(user.getName());
-        form.setEmail(user.getEmail());
-        form.setPhone(user.getPhone());
-        form.setRole(user.getRole());
+        form.setName(staff.getName());
+        form.setEmail(staff.getEmail());
+        form.setPhone(staff.getPhone());
+        form.setRole(staff.getRole());
 
         model.addAttribute("staffForm", form);
-        model.addAttribute("staffId", userId);
-        model.addAttribute("branch", branch);
-
+        model.addAttribute("staffId", id);
+        model.addAttribute("branch", branchService.findById(branchId).orElse(null));
         return "branch-manager/staff-edit";
     }
 
-    //UPDATE Method
-    @PostMapping("/staff/edit/{id}")
-    public String updateStaff(@PathVariable("id") Long userId,
-                              @Valid @ModelAttribute("staffForm") StaffForm staffForm,
-                              BindingResult bindingResult,
-                              HttpSession session,
-                              Model model,
-                              RedirectAttributes redirectAttributes) {
-
+    @PostMapping("/staff/{id}/edit")
+    public String editStaff(@PathVariable Long id,
+            @Valid @ModelAttribute("staffForm") StaffForm staffForm,
+            BindingResult bindingResult,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         Long branchId = (Long) session.getAttribute("branchId");
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("staffId", userId);
-            model.addAttribute("branch",
-                    branchService.findById(branchId).orElse(null));
+            model.addAttribute("staffId", id);
+            model.addAttribute("branch", branchService.findById(branchId).orElse(null));
             return "branch-manager/staff-edit";
         }
 
         try {
-            Branch branch = branchService.findById(branchId)
-                    .orElseThrow(() -> new IllegalArgumentException("Branch not found."));
-
-            userService.updateStaff(userId, staffForm, branch);
-
-            redirectAttributes.addFlashAttribute(
-                    "message",
-                    "Staff member updated successfully."
-            );
-
+            userService.updateStaff(id, staffForm, branchId);
+            redirectAttributes.addFlashAttribute("message", "Staff member updated.");
         } catch (IllegalArgumentException | IllegalStateException e) {
-
-            redirectAttributes.addFlashAttribute(
-                    "error",
-                    e.getMessage()
-            );
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-
         return "redirect:/branch-manager/staff";
     }
 
-    //DELETE method
-    @PostMapping("/staff/delete/{id}")
-    public String deleteStaff(@PathVariable("id") Long userId,
-                              HttpSession session,
-                              RedirectAttributes redirectAttributes) {
+    // Staff Delete method to remove a staff membr
 
+    @PostMapping("/staff/{id}/delete")
+    public String deleteStaff(@PathVariable Long id,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         Long branchId = (Long) session.getAttribute("branchId");
-
         try {
-            Branch branch = branchService.findById(branchId)
-                    .orElseThrow(() -> new IllegalArgumentException("Branch not found."));
-
-            userService.deleteStaff(userId, branch);
-
-            redirectAttributes.addFlashAttribute(
-                    "message",
-                    "Staff member deleted successfully."
-            );
-
+            userService.deleteStaff(id, branchId);
+            redirectAttributes.addFlashAttribute("message", "Staff member removed.");
         } catch (IllegalArgumentException | IllegalStateException e) {
-
-            redirectAttributes.addFlashAttribute(
-                    "error",
-                    e.getMessage()
-            );
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-
         return "redirect:/branch-manager/staff";
     }
+
+    // Branch details page display
 
     @GetMapping("/branch")
     public String branchDetailsPage(HttpSession session, Model model) {
+
         Long branchId = (Long) session.getAttribute("branchId");
+
+        if (branchId == null) {
+            return "redirect:/login";
+        }
 
         Branch branch = branchService.findById(branchId)
                 .orElseThrow(() -> new IllegalArgumentException("Branch not found."));
@@ -177,11 +163,12 @@ public class BranchManagerController {
         return "branch-manager/branch";
     }
 
+    // Feedback Page method
+
     @GetMapping("/feedback")
-    public String feedbackPage(com.autocare.vehicleservice.controller.HttpSession session, Model model) {
+    public String feedbackPage(HttpSession session, Model model) {
         Long branchId = (Long) session.getAttribute("branchId");
         model.addAttribute("feedbackList", feedbackService.listByBranch(branchId));
         return "branch-manager/feedback";
     }
 }
-
