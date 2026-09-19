@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stock - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Stock</h1>
+            <p>Add new fuel and equipment items, and update quantities at your branch. Items below their threshold are flagged.</p>
+        </div>
+    </div>
+
+    <div class="card" style="padding:1.25rem;">
+        <h2>Add stock item</h2>
+        <form th:action="@{/inventory/stock}" th:object="${stockItemForm}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Item name</label>
+                    <input type="text" id="name" th:field="*{name}" maxlength="100" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" th:field="*{type}" required>
+                        <option value="">Choose a type</option>
+                        <option th:each="t : ${stockTypes}" th:value="${t}" th:text="${t}"></option>
+                    </select>
+                    <div class="field-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">Starting quantity</label>
+                    <input type="number" id="quantity" th:field="*{quantity}" step="0.01" min="0" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="unit">Unit</label>
+                    <input type="text" id="unit" th:field="*{unit}" maxlength="20" placeholder="e.g. L, pcs" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('unit')}" th:errors="*{unit}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="lowStockThreshold">Low-stock threshold</label>
+                    <input type="number" id="lowStockThreshold" th:field="*{lowStockThreshold}" step="0.01" min="0" required>
+                    <small>Flagged as Low Stock when the quantity falls below this.</small>
+                    <div class="field-error" th:if="${#fields.hasErrors('lowStockThreshold')}" th:errors="*{lowStockThreshold}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="unitPrice">Unit price (Rs.)</label>
+                    <input type="number" id="unitPrice" th:field="*{unitPrice}" step="0.01" min="0" required>
+                    <small>Price charged per unit. Fuel sales use this to work out the total automatically.</small>
+                    <div class="field-error" th:if="${#fields.hasErrors('unitPrice')}" th:errors="*{unitPrice}"></div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add item</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(stockItems)}">
+        <div class="empty-state"><p>No stock items at your branch yet. Use the form above to add the first one.</p></div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(stockItems)}">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>Threshold</th>
+                    <th>Price (Rs.)</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${stockItems}">
+                    <td th:text="${item.name}"></td>
+                    <td th:text="${item.type}"></td>
+                    <td class="mono" th:text="${item.quantity}"></td>
+                    <td th:text="${item.unit}"></td>
+                    <td class="mono" th:text="${item.lowStockThreshold}"></td>
+                    <td class="mono" th:text="${item.unitPrice}"></td>
+                    <td>
+                        <span class="badge badge-rejected" th:if="${item.lowStock}">Low Stock</span>
+                        <span class="badge badge-approved" th:unless="${item.lowStock}">OK</span>
+                    </td>
+                    <td class="text-right" style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                        <button type="button" class="btn btn-secondary btn-sm"
+                                th:data-id="${item.id}"
+                                th:data-name="${item.name}"
+                                th:data-type="${item.type}"
+                                th:data-quantity="${item.quantity}"
+                                th:data-unit="${item.unit}"
+                                th:data-threshold="${item.lowStockThreshold}"
+                                th:data-price="${item.unitPrice}"
+                                onclick="openEditItemModal(this)">
+                            Edit
+                        </button>
+                        <form th:id="'delete-item-form-' + ${item.id}" th:action="@{/inventory/stock/{id}/delete(id=${item.id})}" method="post" style="margin:0;">
+                            <button type="button" class="btn btn-danger btn-sm"
+                                    th:data-name="${item.name}"
+                                    onclick="confirmDeleteItem(this, '${item.id}')">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="editItemModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(27,32,40,0.55); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(2px);">
+        <div style="background:var(--color-surface, #ffffff); border-radius:var(--radius, 8px); padding:2rem; width:90%; max-width:520px; box-shadow:0 12px 32px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid var(--color-border, #e2ded4); padding-bottom:0.75rem;">
+                <h3 style="margin:0; font-size:1.25rem;">Edit Stock Item</h3>
+                <button type="button" onclick="closeEditItemModal()" style="background:none; border:none; font-size:1.6rem; line-height:1; cursor:pointer; color:var(--color-ink-soft, #4a5060);">&times;</button>
+            </div>
+            <form id="editItemForm" method="post" novalidate>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editName" style="font-weight:600; display:block; margin-bottom:0.35rem;">Item name</label>
+                        <input type="text" id="editName" name="name" maxlength="100" style="width:100%;" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editType" style="font-weight:600; display:block; margin-bottom:0.35rem;">Type</label>
+                        <select id="editType" name="type" style="width:100%;" required>
+                            <option th:each="t : ${stockTypes}" th:value="${t}" th:text="${t}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:1rem;">
+                    <div class="form-group">
+                        <label for="editQuantity" style="font-weight:600; display:block; margin-bottom:0.35rem;">Quantity</label>
+                        <input type="number" id="editQuantity" name="quantity" step="0.01" min="0" style="width:100%;" required>
+                        <div id="editQuantityError" style="display:none; color:var(--color-red, #c1442e); font-size:0.85rem; margin-top:4px; font-weight:500;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUnit" style="font-weight:600; display:block; margin-bottom:0.35rem;">Unit</label>
+                        <input type="text" id="editUnit" name="unit" maxlength="20" placeholder="e.g. L, pcs" style="width:100%;" required>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:1rem;">
+                    <div class="form-group">
+                        <label for="editThreshold" style="font-weight:600; display:block; margin-bottom:0.35rem;">Low-stock threshold</label>
+                        <input type="number" id="editThreshold" name="lowStockThreshold" step="0.01" min="0" style="width:100%;" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUnitPrice" style="font-weight:600; display:block; margin-bottom:0.35rem;">Unit price (Rs.)</label>
+                        <input type="number" id="editUnitPrice" name="unitPrice" step="0.01" min="0" style="width:100%;" required>
+                        <div id="editPriceError" style="display:none; color:var(--color-red, #c1442e); font-size:0.85rem; margin-top:4px; font-weight:500;"></div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditItemModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const flashSuccess = /*[[${message}]]*/ null;
+        const flashError = /*[[${error}]]*/ null;
+        /*]]>*/
+        if (flashSuccess) {
+            console.log(flashSuccess);
+        }
+        if (flashError) {
+            console.log(flashError);
+        }
+
+        function openEditItemModal(btn) {
+            document.getElementById('editItemForm').action = '/inventory/stock/' + btn.getAttribute('data-id') + '/edit';
+            document.getElementById('editName').value = btn.getAttribute('data-name');
+            document.getElementById('editType').value = btn.getAttribute('data-type');
+            document.getElementById('editQuantity').value = btn.getAttribute('data-quantity');
+            document.getElementById('editUnit').value = btn.getAttribute('data-unit');
+            document.getElementById('editThreshold').value = btn.getAttribute('data-threshold');
+            document.getElementById('editUnitPrice').value = btn.getAttribute('data-price');
+            document.getElementById('editQuantityError').style.display = 'none';
+            document.getElementById('editPriceError').style.display = 'none';
+            document.getElementById('editItemModal').style.display = 'flex';
+        }
+
+        function closeEditItemModal() {
+            document.getElementById('editItemModal').style.display = 'none';
+        }
+
+        document.getElementById('editItemForm').addEventListener('submit', function (e) {
+            const qty = parseFloat(document.getElementById('editQuantity').value);
+            const price = parseFloat(document.getElementById('editUnitPrice').value);
+            const qtyErr = document.getElementById('editQuantityError');
+            const priceErr = document.getElementById('editPriceError');
+            let ok = true;
+
+            qtyErr.style.display = 'none';
+            priceErr.style.display = 'none';
+
+            if (isNaN(qty) || qty < 0) {
+                qtyErr.textContent = 'Quantity must be zero or a positive number.';
+                qtyErr.style.display = 'block';
+                ok = false;
+            }
+            if (isNaN(price) || price < 0) {
+                priceErr.textContent = 'Unit price must be zero or a positive number.';
+                priceErr.style.display = 'block';
+                ok = false;
+            }
+            if (!ok) {
+                e.preventDefault();
+            }
+        });
+
+        function confirmDeleteItem(btn, id) {
+            const name = btn.getAttribute('data-name');
+            if (confirm('Delete "' + name + '" from your stock? This cannot be undone.')) {
+                document.getElementById('delete-item-form-' + id).submit();
+            }
+        }
+
+        window.addEventListener('click', function (e) {
+            const modal = document.getElementById('editItemModal');
+            if (e.target === modal) {
+                closeEditItemModal();
+            }
+        });
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeEditItemModal();
+            }
+        });
+    </script>
+</main>
+</body>
+</html>

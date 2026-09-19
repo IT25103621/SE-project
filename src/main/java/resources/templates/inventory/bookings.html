@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bookings Queue - Auto Care Fuel &amp; Service</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<main class="container">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Bookings Queue</h1>
+            <p>Accept a pending booking by assigning it to a mechanic at your branch.</p>
+        </div>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(bookings)}">
+        <div class="empty-state"><p>No pending bookings right now.</p></div>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(bookings)}">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Service</th>
+                    <th>Customer</th>
+                    <th>Booked</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${bookings}">
+                    <td class="mono" th:text="${b.vehicle.plateNumber}"></td>
+                    <td th:text="${b.service.name}"></td>
+                    <td th:text="${b.customer.name}"></td>
+                    <td class="mono" th:text="${#temporals.format(b.createdAt, 'dd MMM yyyy')}"></td>
+                    <td class="text-right">
+                        <div class="actions-row" style="justify-content:flex-end; align-items:center;">
+                            <form th:action="@{/inventory/bookings/{id}/assign(id=${b.id})}" method="post"
+                                  class="inline-form">
+                                <select name="mechanicId" required th:disabled="${#lists.isEmpty(mechanics)}">
+                                    <option th:each="m : ${mechanics}" th:value="${m.id}" th:text="${m.name}"></option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm" th:disabled="${#lists.isEmpty(mechanics)}">Assign</button>
+                            </form>
+                            <form th:action="@{/inventory/bookings/{id}/reject(id=${b.id})}" method="post" class="inline-form">
+                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="field-hint" th:if="${#lists.isEmpty(mechanics)}" style="margin-top:1rem;">
+            No mechanics at your branch yet - ask your Branch Manager to add one.
+        </p>
+    </div>
+
+
+    <div class="section" style="margin-top:2.5rem;">
+        <div class="page-header" style="margin-bottom:1rem;">
+            <div>
+                <h2>Active Jobs &amp; Tracking</h2>
+                <p>Track jobs currently assigned to mechanics or in progress at your branch.</p>
+            </div>
+        </div>
+
+        <div class="card" th:if="${#lists.isEmpty(activeJobs)}">
+            <div class="empty-state"><p>No active jobs in progress or assigned right now.</p></div>
+        </div>
+
+        <div class="card" th:unless="${#lists.isEmpty(activeJobs)}">
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Service</th>
+                        <th>Customer</th>
+                        <th>Mechanic</th>
+                        <th>Status</th>
+                        <th>Booked</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="job : ${activeJobs}">
+                        <td class="mono" th:text="${job.vehicle.plateNumber}"></td>
+                        <td th:text="${job.service.name}"></td>
+                        <td th:text="${job.customer.name}"></td>
+                        <td th:text="${job.mechanic != null ? job.mechanic.name : '-'}"></td>
+                        <td><span class="badge" th:classappend="${'badge-' + #strings.toLowerCase(job.status.name())}" th:text="${job.status}"></span></td>
+                        <td class="mono" th:text="${#temporals.format(job.createdAt, 'dd MMM yyyy')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="section" style="margin-top:2.5rem;">
+        <div class="page-header" style="margin-bottom:1rem;">
+            <div>
+                <h2>Recently Completed</h2>
+                <p>Jobs completed by mechanics at your branch.</p>
+            </div>
+        </div>
+
+        <div class="card" th:if="${#lists.isEmpty(completedJobs)}">
+            <div class="empty-state"><p>No completed jobs yet.</p></div>
+        </div>
+
+        <div class="card" th:unless="${#lists.isEmpty(completedJobs)}">
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Service</th>
+                        <th>Customer</th>
+                        <th>Mechanic</th>
+                        <th>Status</th>
+                        <th>Completed</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="job : ${completedJobs}">
+                        <td class="mono" th:text="${job.vehicle.plateNumber}"></td>
+                        <td th:text="${job.service.name}"></td>
+                        <td th:text="${job.customer.name}"></td>
+                        <td th:text="${job.mechanic != null ? job.mechanic.name : '-'}"></td>
+                        <td><span class="badge badge-completed" th:text="${job.status}"></span></td>
+                        <td class="mono" th:text="${#temporals.format(job.completedAt, 'dd MMM yyyy, HH:mm')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
